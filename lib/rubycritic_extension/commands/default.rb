@@ -3,10 +3,11 @@ require 'rubycritic/source_control_systems/base'
 require 'rubycritic_extension/analysers_runner'
 require 'rubycritic/revision_comparator'
 require 'rubycritic_extension/reporter'
-require 'rubycritic/commands/base'
+require 'rubycritic_extension/commands/base'
 require 'httparty'
 require 'yaml'
 require 'rubycritic/commands/default'
+require 'erb'
 
 module RubyCriticExtension
   module Command
@@ -21,6 +22,7 @@ module RubyCriticExtension
         @analysed_modules
         @number
         @code_index_file_location
+        @app_settings = load_yml
       end
 
       def execute
@@ -82,25 +84,44 @@ module RubyCriticExtension
         analysed_modules = AnalysedModulesCollection.new(defected_modules.map(&:path), defected_modules)
         ::RubyCritic::Config.root = Config.build_root_directory
         Config.set_location = Config.build_flag = true
-        @overview_index_file_location = Reporter.generate_report(analysed_modules)
+        @code_index_file_location = Reporter.generate_report(analysed_modules)
+        score_difference
       end
 
       def push_comments_to_gitlab
-        app_settings = YAML.load_file('config/rubycritic_app_settings.yml')
-        app_id = app_settings['app_id']
-        secret = app_settings['secret']
-        code_status = Config.base_branch_score > Config.feature_branch_score ? "> :negative_squared_cross_mark: **#{(Config.base_branch_score - Config.feature_branch_score).round(2)} \% Decreased** :thumbsdown: <br />" : "> :white_check_mark: **#{(Config.feature_branch_score - Config.base_branch_score).round(2)} \% Increased** :thumbsup: <br />" 
-        # report = "<a href=#{@code_index_file_location} target='_blank'>View Report</a> ( " + @code_index_file_location + ' )'
-        note = URI::encode(code_status + "_#{Config.base_branch} score: #{Config.base_branch_score.round(2)}_ % <br />" + "_#{Config.feature_branch} score: #{Config.feature_branch_score.round(2)} %_ <br/>")
-        HTTParty.post("https://vault.cybrilla.com/api/v3/projects/#{app_id}/merge_requests/#{Config.merge_request_id}/notes?body=#{note}",
+        app_id = @app_settings['app_id']
+        secret = @app_settings['secret']
+        gitlab_url = @app_settings['gitlab_url']
+        HTTParty.post("#{gitlab_url}/api/v3/projects/#{app_id}/merge_requests/#{Config.merge_request_id}/notes",
+        :query => {'body' => build_note},
         :headers => {'Private-Token' => secret} )
       end
 
+      def score_difference
+        Config.difference_score =
+          if Config.base_branch_score > Config.feature_branch_score
+            (Config.base_branch_score - Config.feature_branch_score).round(2)
+          else
+            (Config.feature_branch_score - Config.base_branch_score).round(2)
+          end
+      end
+
       def compare_code_quality
-        Config.base_branch_score > Config.feature_branch_score ? Config.quality_flag = false : Config.quality_flag = true
-        # status_reporter.status_message = Config.quality_flag ? "GOOOOOOOOD" : "BAAAAAAAD #{@files_affected} files degraded."
         build_details
+        compare_threshold
         status_reporter
+      end
+
+      def compare_threshold
+        `exit 1` if mark_jenkins_build_fail 
+      end
+
+      def mark_jenkins_build_fail
+        (Config.base_branch_score < @app_settings['app_threshold'] || (Config.base_branch_score - Config.feature_branch_score) > @app_settings['difference_threshold'])
+      end
+
+      def build_note  
+        ERB.new(File.read(File.join(File.dirname(__FILE__), '../generators/html/templates/gitlab_note.html.erb')), nil, '-').result(binding).delete("\n") + "\n"
       end
 
       def base_root_directory
@@ -119,10 +140,13 @@ module RubyCriticExtension
         `git checkout #{branch}`
       end
 
+      def load_yml
+        YAML.load_file('config/rubycritic_app_settings.yml')
+      end
+
       def build_details
         details = "Base branch (#{Config.base_branch}) score: " + Config.base_branch_score.to_s + "\n"
         details += "Feature branch (#{Config.feature_branch}) score: " + Config.feature_branch_score.to_s + "\n"
-        # details += status_reporter.status_message
         File.open("#{Config.build_root_directory}/build_details.txt", 'w') {|f| f.write(details) }
       end
 

@@ -14,8 +14,8 @@ module RubyCriticExtension
         require 'rubycritic/generators/console_report'
         ::RubyCritic::Generator::ConsoleReport
       else
-        require 'rubycritic/generators/html_report'
-        ::RubyCritic::Generator::HtmlReport
+        require 'rubycritic_extension/generators/html_report'
+        Generator::HtmlReport
       end
     end
   end

@@ -3,7 +3,7 @@ require 'rubycritic/configuration'
 module RubyCriticExtension
   class Configuration < ::RubyCritic::Configuration
     attr_accessor :base_branch, :feature_branch, :compare_between_branches ,:base_branch_score, :feature_branch_score, :quality_flag,
-                  :base_root_directory, :feature_root_directory, :build_root_directory, :set_location, :base_branch_flag, :feature_branch_flag, :build_flag, :merge_request_id
+                  :base_root_directory, :feature_root_directory, :build_root_directory, :set_location, :base_branch_flag, :feature_branch_flag, :build_flag, :merge_request_id, :difference_score
 
     def set(options)
       self.mode = options[:mode] || :default
