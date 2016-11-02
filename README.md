@@ -1,6 +1,6 @@
 # RubycriticExtension
 
-RubyCriticExtension is a gem that wraps around [Rubycritic][1] to provide a quality report of your Ruby code by comapring the code in two different branches. It'll tell you the code quality score of both the branches.
+RubyCriticExtension is a gem that wraps around [Rubycritic][1] to provide a quality report of your Ruby code by comparing the code in two different branches. It'll tell you the code quality score of both the branches.
 
 ## Installation
 
@@ -35,20 +35,20 @@ $ rubycritic -b base_branch, feature_branch, pull_request_id
 For posting comment on a pull_request in GitLab below are the configuration. Create a file in config directory `rubycritic_app_settings.yml` with following details
 
 ```ruby
-gitlab_url: 'https://gitlab.com'
+gitlab_url: 'gitlab_url'
 secret: 'access_token'
 app_id: 1
 ```
 
 Access Token for GitLab
 
-```ruby
+```bash
 You can create as many personal access tokens as you like from your GitLab profile (/profile/personal_access_tokens).
 ```
 
 Application id 
 
-```ruby
+```bash
 Once you have the access token get the application id by the below get request to GitLab
 
 https://#{gitlab_url}/api/v3/projects?private_token=#{access_token}&search=#{project_name}
@@ -56,13 +56,13 @@ https://#{gitlab_url}/api/v3/projects?private_token=#{access_token}&search=#{pro
 
 Pull Request Id
 
-```ruby
+```bash
 https://#{gitlab_url}/api/v3/projects/#{project_id}/merge_requests?private_token=#{access_token}
 
-you'll get all the pull_requests for the project. 
+To get all the pull_requests for the project. 
 ```
 
-```ruby
+```bash
 https://#{gitlab_url}/api/v3/projects/#{project_id}/merge_requests?private_token=#{access_token}&state=#{state}
 
 To get the pull_requests based on the state (merged, opened or closed) pass state as an extra parameter.
