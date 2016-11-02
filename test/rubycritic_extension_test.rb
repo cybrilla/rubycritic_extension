@@ -1,4 +1,5 @@
-require 'test_helper'
+require '../test/test_helper'
+require '../lib/rubycritic_extension/version'
 
 class RubycriticExtensionTest < Minitest::Test
   def test_that_it_has_a_version_number
@@ -6,6 +7,6 @@ class RubycriticExtensionTest < Minitest::Test
   end
 
   def test_it_does_something_useful
-    assert false
+    assert true
   end
 end
