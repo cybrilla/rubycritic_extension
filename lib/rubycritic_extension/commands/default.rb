@@ -31,8 +31,8 @@ module RubyCriticExtension
           compare_branches
         else
           report(critique)
-          status_reporter
         end
+        status_reporter
       end
 
       def compare_branches
@@ -92,9 +92,12 @@ module RubyCriticExtension
         app_id = @app_settings['app_id']
         secret = @app_settings['secret']
         gitlab_url = @app_settings['gitlab_url']
-        HTTParty.post("#{gitlab_url}/api/v3/projects/#{app_id}/merge_requests/#{Config.merge_request_id}/notes",
-        :query => {'body' => build_note},
-        :headers => {'Private-Token' => secret} )
+        merge_request_id = Config.merge_request_id
+        unless [app_id, secret, gitlab_url, merge_request_id].all?(&:nil?)
+          HTTParty.post("#{gitlab_url}/api/v3/projects/#{app_id}/merge_requests/#{merge_request_id}/notes",
+          :query => {'body' => build_note},
+          :headers => {'Private-Token' => secret} )
+        end
       end
 
       def score_difference
@@ -109,7 +112,6 @@ module RubyCriticExtension
       def compare_code_quality
         build_details
         compare_threshold
-        status_reporter
       end
 
       def compare_threshold
@@ -117,7 +119,7 @@ module RubyCriticExtension
       end
 
       def mark_jenkins_build_fail
-        (Config.base_branch_score < @app_settings['app_threshold'] || (Config.base_branch_score - Config.feature_branch_score) > @app_settings['difference_threshold'])
+        [@app_settings['app_threshold'], @app_settings['difference_threshold']].all?(&:nil?) ? false : (Config.base_branch_score < @app_settings['app_threshold'] || (Config.base_branch_score - Config.feature_branch_score) > @app_settings['difference_threshold']) 
       end
 
       def build_note  

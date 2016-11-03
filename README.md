@@ -23,13 +23,13 @@ Or install it yourself as:
 Running `rubycritic_extension -b base_branch, feature_branch` will analyse all the Ruby files in the base_branch and the feature_branch and compare the score between the two branches, before running this commit all your changes in both the branches:
 
 ```bash
-$ rubycritic -b base_branch, feature_branch
+$ rubycritic_extension -b base_branch,feature_branch
 ```
 
 Alternatively if you're using GitLab you can pass `pull_request_id` as the third argument which will post a comment to the respective pull_request:
 
 ```bash
-$ rubycritic -b base_branch, feature_branch, pull_request_id
+$ rubycritic_extension -b base_branch,feature_branch,pull_request_id
 ```
 
 For posting comment on a pull_request in GitLab below are the configuration. Create a file in config directory `rubycritic_app_settings.yml` with following details
@@ -68,6 +68,26 @@ https://#{gitlab_url}/api/v3/projects/#{project_id}/merge_requests?private_token
 To get the pull_requests based on the state (merged, opened or closed) pass state as an extra parameter.
 ```
 
+## Integrating with jenkins
+
+Setup a [webhook][2] in GitLab so that corresponding action triggers jenkins build.
+In jenkins add the below line in the build which will help you analyse the code and will post a comment in GitLab
+
+```bash
+rubycritic_extension -b ${gitlabSourceBranch},${gitlabTargetBranch},${gitlabMergeRequestId}
+```
+Configuration can be made to make the build as failed if the overall code quality goes below threshold value or if the difference between two branches goes below difference threshold.
+
+Add app_threshold and difference_threshold to `rubycritic_app_settings.yml`
+
+```ruby
+gitlab_url: 'gitlab_url'
+secret: 'access_token'
+app_id: 1
+app_threshold: 85
+difference_threshold: 5
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/cybrilla/rubycritic_extension. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
@@ -81,3 +101,4 @@ The gem is available as open source under the terms of the [MIT License](http://
 
 
 [1]: https://github.com/whitesmith/rubycritic
+[2]: https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/web_hooks/web_hooks.md
