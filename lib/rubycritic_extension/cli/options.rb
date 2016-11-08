@@ -14,7 +14,7 @@ module RubyCriticExtension
             @root = path
           end
 
-          opts.on('-b', '--base_branch BRANCH, FEATURE_BRANCH, GITLAB_PR_ID' , "Set base branch") do |branches|
+          opts.on('-b', '--BASE_BRANCH,FEATURE_BRANCH,GITLAB_PR_ID', 'Set base branch,feature branch,gitlab pull_request id (optional)') do |branches|
             self.base_branch = branches.split(',')[0].strip
             self.feature_branch = branches.split(',')[1].strip
             self.merge_request_id = branches.split(',')[2].strip rescue nil

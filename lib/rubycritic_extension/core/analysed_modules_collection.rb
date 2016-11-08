@@ -1,5 +1,6 @@
 require 'rubycritic/source_locator'
 require 'rubycritic/core/analysed_module'
+require 'rubycritic/configuration'
 require 'rubycritic/core/analysed_modules_collection'
 
 module RubyCriticExtension
